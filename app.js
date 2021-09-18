@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const exphbs = require('express-handlebars')
 const Todo = require('./models/todo')
 const bodyParser = require('body-parser')
+const { findById } = require('./models/todo')
 
 const app = express()
 
@@ -66,14 +67,22 @@ app.post('/todos/:id/edit', (req, res) => {
   const id = req.params.id
   const name = req.body.name
   return Todo.findById(id)
-  .then(todo => {
-    todo.name = name
-    return todo.save()
-  })
-  .then(()=>res.redirect(`/todo/${id}`))
-  .catch(error => console.log(error))
+    .then(todo => {
+      todo.name = name
+      return todo.save()
+    })
+    .then(() => res.redirect(`/todo/${id}`))
+    .catch(error => console.log(error))
 })
 
+//delete
+app.post('/todos/:id/delete', (req, res) => {
+  const id = req.params.id
+  return Todo.findById(id)
+    .then(todo => todo.remove())
+    .then(() => res.redirect('/'))
+    .catch(error => console.log(error))
+})
 
 
 // 設定 port 3000
