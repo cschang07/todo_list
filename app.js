@@ -28,18 +28,21 @@ app.set('view engine', 'handlebars')
 //body parser
 app.use(bodyParser.urlencoded({ extended: true }))
 
-// 設定首頁路由
+// 取得新增 todo 的表單 | GET | /todos/new
 app.get('/', (req, res) => {
   Todo.find() // 取出 Todo model 裡的所有資料
     .lean() // 把 Mongoose 的 Model 物件轉換成乾淨的 JavaScript 資料陣列
+    .sort({_id:'asc'})// desc
     .then(todos => res.render('index', { todos })) // 將資料傳給 index 樣板
     .catch(error => console.error(error)) // 錯誤處理
 })
 
+//取得新增 todo 的表單 | GET | /todos/new
 app.get('/todos/new', (req, res) => {
   return res.render('new')
 })
 
+//新增一筆 todo 紀錄 | POST | /todos
 app.post('/todos', (req, res) => {
   const name = req.body.name       // 從 req.body 拿出表單裡的 name 資料
   return Todo.create({ name })     // 存入資料庫
@@ -47,6 +50,7 @@ app.post('/todos', (req, res) => {
     .catch(error => console.log(error))
 })
 
+//瀏覽特定 todo 的詳細資料 | GET | /todos/:id
 app.get('/todos/:id', (req, res) => {
   const id = req.params.id
   return Todo.findById(id)
@@ -55,6 +59,7 @@ app.get('/todos/:id', (req, res) => {
     .catch(error => console.log(error))
 })
 
+//取得編輯特定 todo 的表單 | GET | /todos/:id/edit
 app.get('/todos/:id/edit', (req, res) => {
   const id = req.params.id
   return Todo.findById(id)
@@ -63,19 +68,22 @@ app.get('/todos/:id/edit', (req, res) => {
     .catch(error => console.log(error))
 })
 
+//修改特定 todo 紀錄 | PUT | /todos/:id
 app.post('/todos/:id/edit', (req, res) => {
   const id = req.params.id
-  const name = req.body.name
+  // const name = req.body.name
+  const { name, isDone } = req.body //destructuring assignment
   return Todo.findById(id)
     .then(todo => {
       todo.name = name
+      todo.isDone = isDone === 'on'
       return todo.save()
     })
-    .then(() => res.redirect(`/todo/${id}`))
+    .then(() => res.redirect(`/todos/${id}`))
     .catch(error => console.log(error))
 })
 
-//delete
+//刪除特定 todo 紀錄 | DELETE | /todos/:id 
 app.post('/todos/:id/delete', (req, res) => {
   const id = req.params.id
   return Todo.findById(id)
